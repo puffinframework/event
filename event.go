@@ -4,6 +4,11 @@ import (
 	"time"
 )
 
+type Event interface {
+	Header() Header
+	Data() Data
+}
+
 type Header struct {
 	UUID      string
 	Timestamp time.Time
