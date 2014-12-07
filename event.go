@@ -21,4 +21,6 @@ func NewHeader(eventType string, version int) *Header {
 	}
 }
 
-type Store interface{}
+type Store interface{
+	MustLoadEventData(header Header, data interface{})
+}
