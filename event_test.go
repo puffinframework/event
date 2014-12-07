@@ -7,8 +7,9 @@ import (
 )
 
 func Test(t *testing.T) {
-	evt := NewEvent("SomeEvent", 3, "someData")
-	assert.Equal(t, "SomeEvent", evt.Header().Type)
-	assert.Equal(t, 3, evt.Header().Version)
-	assert.Equal(t, "someData", evt.Data())
+	header := NewEventHeader("SomeEvent", 3)
+	assert.NotNil(t, header.CreatedAt)
+	assert.NotNil(t, header.ID)
+	assert.Equal(t, "SomeEvent", header.Type)
+	assert.Equal(t, 3, header.Version)
 }
