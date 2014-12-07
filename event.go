@@ -12,8 +12,8 @@ type Header struct {
 	Version   int
 }
 
-func NewHeader(eventType string, version int) *Header {
-	return &Header{
+func NewHeader(eventType string, version int) Header {
+	return Header{
 		CreatedAt: time.Now(),
 		ID:        uuid.NewV1().String(),
 		Type:      eventType,
@@ -22,7 +22,7 @@ func NewHeader(eventType string, version int) *Header {
 }
 
 type Store interface {
-	ForEach(since time.Time, handler func(header *Header))
+	ForEach(since time.Time, handler func(header Header))
 	MustLoad(header Header, data interface{})
 	MustSave(header Header, data interface{})
 }
