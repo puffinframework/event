@@ -22,7 +22,7 @@ func NewHeader(eventType string, version int) *Header {
 }
 
 type Store interface {
-	ForEachEventHeader(since time.Time, handler func(header Header))
-	MustLoadEventData(header Header, data interface{})
-	MustSaveEvent(header Header, data interface{})
+	ForEach(since time.Time, handler func(header *Header))
+	MustLoad(header Header, data interface{})
+	MustSave(header Header, data interface{})
 }
