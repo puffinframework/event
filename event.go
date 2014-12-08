@@ -47,6 +47,7 @@ func NewHeader(eventType string, version int) Header {
 func MustEncodeEventHeader(header Header) []byte {
 	createdAt, err := header.CreatedAt.MarshalBinary()
 	if err != nil {
+		log.Print(err)
 		log.Panic(ErrEncodeEventHeader)
 	}
 
@@ -65,11 +66,13 @@ func MustDecodeEventHeader(encoded []byte) Header {
 	createdAt := time.Unix(0, 0)
 	err := createdAt.UnmarshalBinary([]byte(tokens[0]))
 	if err != nil {
+		log.Print(err)
 		log.Panic(ErrDecodeEventHeader)
 	}
 
 	version, err := strconv.Atoi(tokens[3])
 	if err != nil {
+		log.Print(err)
 		log.Panic(ErrDecodeEventHeader)
 	}
 
@@ -108,6 +111,7 @@ func NewLeveldbStore() Store {
 
 	db, err := leveldb.OpenFile(dir, nil)
 	if err != nil {
+		log.Print(err)
 		log.Panic(ErrOpenStore)
 	}
 
@@ -129,6 +133,7 @@ func (self *leveldbStore) ForEachEventHeader(since time.Time, callback func(head
 	iter.Release()
 
 	if err := iter.Error(); err != nil {
+		log.Print(err)
 		log.Panic(ErrForEachEventHeader)
 	}
 }
@@ -141,11 +146,13 @@ func (self *leveldbStore) MustLoadEvendData(header Header, data interface{}) {
 		if err == leveldbErrors.ErrNotFound {
 			return
 		} else {
+			log.Print(err)
 			log.Panic(ErrGetEventData)
 		}
 	}
 
 	if err = bson.Unmarshal(value, data); err != nil {
+		log.Print(err)
 		log.Panic(ErrUnmarshalEventData)
 	}
 }
@@ -155,16 +162,19 @@ func (self *leveldbStore) MustSaveEventData(header Header, data interface{}) {
 
 	value, err := bson.Marshal(data)
 	if err != nil {
+		log.Print(err)
 		log.Panic(ErrMarshalEventData)
 	}
 
 	if err = self.db.Put(key, value, nil); err != nil {
+		log.Print(err)
 		log.Panic(ErrPutEventData)
 	}
 }
 
 func (self *leveldbStore) MustClose() {
 	if err := self.db.Close(); err != nil {
+		log.Print(err)
 		log.Panic(ErrCloseStore)
 	}
 }
@@ -172,6 +182,7 @@ func (self *leveldbStore) MustClose() {
 func (self *leveldbStore) MustDestroy() {
 	self.MustClose()
 	if err := os.RemoveAll(self.dir); err != nil {
+		log.Print(err)
 		log.Panic(ErrDestroyStore)
 	}
 }
