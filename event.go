@@ -6,6 +6,7 @@ import (
 	"github.com/satori/go.uuid"
 	"github.com/syndtr/goleveldb/leveldb"
 	leveldbErrors "github.com/syndtr/goleveldb/leveldb/errors"
+	"github.com/syndtr/goleveldb/leveldb/util"
 	"labix.org/v2/mgo/bson"
 	"log"
 	"os"
@@ -24,6 +25,7 @@ var (
 	ErrPutEventData       error = errors.New("event: couldn't put event data into the store")
 	ErrMarshalEventData   error = errors.New("event: couldn't marshal the event data")
 	ErrUnmarshalEventData error = errors.New("event: couldn't unmarshal the event data")
+	ErrForEachEventHeader error = errors.New("event: there was a problem during the iteration of event headers")
 )
 
 type Header struct {
@@ -113,6 +115,22 @@ func NewLeveldbStore() Store {
 }
 
 func (self *leveldbStore) ForEach(since time.Time, callback func(header Header) bool) {
+	startHeader := Header{CreatedAt: since.Add(1 * time.Nanosecond), ID: "", Type: "", Version: 0}
+	startKey := MustEncodeHeader(startHeader)
+
+	iter := self.db.NewIterator(&util.Range{Start: startKey}, nil)
+	for iter.Next() {
+		key := iter.Key()
+		header := MustDecodeHeader(key)
+		if callback(header) == false {
+			break
+		}
+	}
+	iter.Release()
+
+	if err := iter.Error(); err != nil {
+		log.Panic(ErrForEachEventHeader)
+	}
 }
 
 func (self *leveldbStore) MustLoad(header Header, data interface{}) {
