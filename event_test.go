@@ -55,4 +55,40 @@ func TestEventStore(t *testing.T) {
 	data33 := &MyEventData{}
 	store.MustLoadEvendData(header3, data33)
 	assert.Equal(t, data33, data3)
+
+	ids := []string{}
+	data := []string{}
+	store.ForEachEventHeader(time.Unix(0, 0), func(header event.Header) bool {
+		ids = append(ids, header.ID)
+		d := &MyEventData{}
+		store.MustLoadEvendData(header, d)
+		data = append(data, d.Data)
+		return true
+	})
+	assert.Equal(t, []string{"id1", "id2", "id3"}, ids)
+	assert.Equal(t, []string{"data 1", "data 2", "data 3"}, data)
+
+	ids = []string{}
+	data = []string{}
+	store.ForEachEventHeader(time.Unix(0, 10), func(header event.Header) bool {
+		ids = append(ids, header.ID)
+		d := &MyEventData{}
+		store.MustLoadEvendData(header, d)
+		data = append(data, d.Data)
+		return true
+	})
+	assert.Equal(t, []string{"id2", "id3"}, ids)
+	assert.Equal(t, []string{"data 2", "data 3"}, data)
+
+	ids = []string{}
+	data = []string{}
+	store.ForEachEventHeader(time.Unix(0, 0), func(header event.Header) bool {
+		ids = append(ids, header.ID)
+		d := &MyEventData{}
+		store.MustLoadEvendData(header, d)
+		data = append(data, d.Data)
+		return len(ids) < 2
+	})
+	assert.Equal(t, []string{"id1", "id2"}, ids)
+	assert.Equal(t, []string{"data 1", "data 2"}, data)
 }
