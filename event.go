@@ -74,7 +74,7 @@ func DecodeHeader(encoded []byte) Header {
 }
 
 type Store interface {
-	ForEach(since time.Time, handler func(header Header))
+	ForEach(since time.Time, callback func(header Header) bool)
 	MustLoad(header Header, data interface{})
 	MustSave(header Header, data interface{})
 	MustClose()
@@ -106,7 +106,7 @@ func NewLeveldbStore() Store {
 	return &leveldbStore{dir: dir, db: db}
 }
 
-func (self *leveldbStore) ForEach(since time.Time, handler func(header Header)) {
+func (self *leveldbStore) ForEach(since time.Time, callback func(header Header) bool) {
 }
 
 func (self *leveldbStore) MustLoad(header Header, data interface{}) {
