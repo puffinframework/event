@@ -36,7 +36,7 @@ func NewHeader(eventType string, version int) Header {
 	}
 }
 
-func encodeHeader(header Header) []byte {
+func EncodeHeader(header Header) []byte {
 	createdAt, err := header.CreatedAt.MarshalBinary()
 	if err != nil {
 		log.Panic(ErrEncodeHeader)
@@ -51,7 +51,7 @@ func encodeHeader(header Header) []byte {
 	return []byte(strings.Join(tokens, "::"))
 }
 
-func decodeHeader(encoded []byte) Header {
+func DecodeHeader(encoded []byte) Header {
 	tokens := strings.Split(string(encoded), "::")
 
 	createdAt := time.Unix(0, 0)

@@ -6,10 +6,14 @@ import (
 	"testing"
 )
 
-func Test(t *testing.T) {
+func TestHeader(t *testing.T) {
 	header := NewHeader("EventType1", 3)
 	assert.NotNil(t, header.CreatedAt)
 	assert.NotNil(t, header.ID)
 	assert.Equal(t, "EventType1", header.Type)
 	assert.Equal(t, 3, header.Version)
+
+	encoded := EncodeHeader(header)
+	decoded := DecodeHeader(encoded)
+	assert.Equal(t, header, decoded)
 }
