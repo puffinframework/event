@@ -13,7 +13,7 @@ func TestHeader(t *testing.T) {
 	assert.Equal(t, "EventType1", header.Type)
 	assert.Equal(t, 3, header.Version)
 
-	encoded := MustEncodeHeader(header)
-	decoded := MustDecodeHeader(encoded)
+	encoded := MustEncodeEventHeader(header)
+	decoded := MustDecodeEventHeader(encoded)
 	assert.Equal(t, header, decoded)
 }

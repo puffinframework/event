@@ -16,8 +16,8 @@ import (
 )
 
 var (
-	ErrDecodeHeader       error = errors.New("event: couldn't decode the event header")
-	ErrEncodeHeader       error = errors.New("event: couldn't encode the event header")
+	ErrDecodeEventHeader  error = errors.New("event: couldn't decode the event header")
+	ErrEncodeEventHeader  error = errors.New("event: couldn't encode the event header")
 	ErrOpenStore          error = errors.New("event: couldn't open the store")
 	ErrCloseStore         error = errors.New("event: couldn't close the store")
 	ErrDestroyStore       error = errors.New("event: couldn't destroy the store")
@@ -44,10 +44,10 @@ func NewHeader(eventType string, version int) Header {
 	}
 }
 
-func MustEncodeHeader(header Header) []byte {
+func MustEncodeEventHeader(header Header) []byte {
 	createdAt, err := header.CreatedAt.MarshalBinary()
 	if err != nil {
-		log.Panic(ErrEncodeHeader)
+		log.Panic(ErrEncodeEventHeader)
 	}
 
 	tokens := []string{
@@ -59,18 +59,18 @@ func MustEncodeHeader(header Header) []byte {
 	return []byte(strings.Join(tokens, "::"))
 }
 
-func MustDecodeHeader(encoded []byte) Header {
+func MustDecodeEventHeader(encoded []byte) Header {
 	tokens := strings.Split(string(encoded), "::")
 
 	createdAt := time.Unix(0, 0)
 	err := createdAt.UnmarshalBinary([]byte(tokens[0]))
 	if err != nil {
-		log.Panic(ErrDecodeHeader)
+		log.Panic(ErrDecodeEventHeader)
 	}
 
 	version, err := strconv.Atoi(tokens[3])
 	if err != nil {
-		log.Panic(ErrDecodeHeader)
+		log.Panic(ErrDecodeEventHeader)
 	}
 
 	return Header{
@@ -82,9 +82,9 @@ func MustDecodeHeader(encoded []byte) Header {
 }
 
 type Store interface {
-	ForEach(since time.Time, callback func(header Header) bool)
-	MustLoad(header Header, data interface{})
-	MustSave(header Header, data interface{})
+	ForEachEventHeader(since time.Time, callback func(header Header) bool)
+	MustLoadEvendData(header Header, data interface{})
+	MustSaveEventData(header Header, data interface{})
 	MustClose()
 	MustDestroy()
 }
@@ -114,14 +114,14 @@ func NewLeveldbStore() Store {
 	return &leveldbStore{dir: dir, db: db}
 }
 
-func (self *leveldbStore) ForEach(since time.Time, callback func(header Header) bool) {
+func (self *leveldbStore) ForEachEventHeader(since time.Time, callback func(header Header) bool) {
 	startHeader := Header{CreatedAt: since.Add(1 * time.Nanosecond), ID: "", Type: "", Version: 0}
-	startKey := MustEncodeHeader(startHeader)
+	startKey := MustEncodeEventHeader(startHeader)
 
 	iter := self.db.NewIterator(&util.Range{Start: startKey}, nil)
 	for iter.Next() {
 		key := iter.Key()
-		header := MustDecodeHeader(key)
+		header := MustDecodeEventHeader(key)
 		if callback(header) == false {
 			break
 		}
@@ -133,8 +133,8 @@ func (self *leveldbStore) ForEach(since time.Time, callback func(header Header) 
 	}
 }
 
-func (self *leveldbStore) MustLoad(header Header, data interface{}) {
-	key := MustEncodeHeader(header)
+func (self *leveldbStore) MustLoadEvendData(header Header, data interface{}) {
+	key := MustEncodeEventHeader(header)
 
 	value, err := self.db.Get(key, nil)
 	if err != nil {
@@ -150,8 +150,8 @@ func (self *leveldbStore) MustLoad(header Header, data interface{}) {
 	}
 }
 
-func (self *leveldbStore) MustSave(header Header, data interface{}) {
-	key := MustEncodeHeader(header)
+func (self *leveldbStore) MustSaveEventData(header Header, data interface{}) {
+	key := MustEncodeEventHeader(header)
 
 	value, err := bson.Marshal(data)
 	if err != nil {
