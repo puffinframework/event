@@ -7,7 +7,17 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 	"time"
+)
+
+var (
+	ErrDecodeHeader error = errors.New("event: couldn't decode header")
+	ErrEncodeHeader error = errors.New("event: couldn't encode header")
+	ErrOpenStore    error = errors.New("event: couldn't open store")
+	ErrCloseStore   error = errors.New("event: couldn't close store")
+	ErrDestroyStore error = errors.New("event: couldn't destroy store")
 )
 
 type Header struct {
@@ -26,11 +36,42 @@ func NewHeader(eventType string, version int) Header {
 	}
 }
 
-var (
-	ErrOpenStore    error = errors.New("snapshot: couldn't open store")
-	ErrCloseStore   error = errors.New("snapshot: couldn't close store")
-	ErrDestroyStore error = errors.New("snapshot: couldn't destroy store")
-)
+func encodeHeader(header Header) []byte {
+	createdAt, err := header.CreatedAt.MarshalBinary()
+	if err != nil {
+		log.Panic(ErrEncodeHeader)
+	}
+
+	tokens := []string{
+		string(createdAt),
+		header.ID,
+		header.Type,
+		strconv.Itoa(header.Version),
+	}
+	return []byte(strings.Join(tokens, "::"))
+}
+
+func decodeHeader(encoded []byte) Header {
+	tokens := strings.Split(string(encoded), "::")
+
+	createdAt := time.Unix(0, 0)
+	err := createdAt.UnmarshalBinary([]byte(tokens[0]))
+	if err != nil {
+		log.Panic(ErrDecodeHeader)
+	}
+
+	version, err := strconv.Atoi(tokens[3])
+	if err != nil {
+		log.Panic(ErrDecodeHeader)
+	}
+
+	return Header{
+		CreatedAt: createdAt,
+		ID:        tokens[1],
+		Type:      tokens[2],
+		Version:   version,
+	}
+}
 
 type Store interface {
 	ForEach(since time.Time, handler func(header Header))
