@@ -32,15 +32,20 @@ func TestEventStore(t *testing.T) {
 	assert.NotNil(t, store)
 	defer store.MustDestroy()
 
-	header1 := event.Header{CreatedAt: time.Unix(0, 10), ID: "id1", Type: "TypeA", Version: 1}
+	time0 := time.Unix(0, 0)
+	time1 := time.Unix(0, 1)
+	time2 := time.Unix(0, 2)
+	time3 := time.Unix(0, 3)
+
+	header1 := event.Header{CreatedAt: time1, ID: "id1", Type: "TypeA", Version: 1}
 	data1 := &MyEventData{Data: "data 1"}
 	store.MustSaveEventData(header1, data1)
 
-	header2 := event.Header{CreatedAt: time.Unix(0, 20), ID: "id2", Type: "TypeA", Version: 1}
+	header2 := event.Header{CreatedAt: time2, ID: "id2", Type: "TypeA", Version: 1}
 	data2 := &MyEventData{Data: "data 2"}
 	store.MustSaveEventData(header2, data2)
 
-	header3 := event.Header{CreatedAt: time.Unix(0, 30), ID: "id3", Type: "TypeA", Version: 1}
+	header3 := event.Header{CreatedAt: time3, ID: "id3", Type: "TypeA", Version: 1}
 	data3 := &MyEventData{Data: "data 3"}
 	store.MustSaveEventData(header3, data3)
 
@@ -58,7 +63,7 @@ func TestEventStore(t *testing.T) {
 
 	ids := []string{}
 	data := []string{}
-	store.ForEachEventHeader(time.Unix(0, 0), func(header event.Header) bool {
+	store.ForEachEventHeader(time0, func(header event.Header) bool {
 		ids = append(ids, header.ID)
 		d := &MyEventData{}
 		store.MustLoadEvendData(header, d)
@@ -70,7 +75,7 @@ func TestEventStore(t *testing.T) {
 
 	ids = []string{}
 	data = []string{}
-	store.ForEachEventHeader(time.Unix(0, 10), func(header event.Header) bool {
+	store.ForEachEventHeader(time1, func(header event.Header) bool {
 		ids = append(ids, header.ID)
 		d := &MyEventData{}
 		store.MustLoadEvendData(header, d)
@@ -82,7 +87,7 @@ func TestEventStore(t *testing.T) {
 
 	ids = []string{}
 	data = []string{}
-	store.ForEachEventHeader(time.Unix(0, 0), func(header event.Header) bool {
+	store.ForEachEventHeader(time0, func(header event.Header) bool {
 		ids = append(ids, header.ID)
 		d := &MyEventData{}
 		store.MustLoadEvendData(header, d)
