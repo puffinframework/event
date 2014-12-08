@@ -5,6 +5,8 @@ import (
 	"github.com/puffinframework/config"
 	"github.com/satori/go.uuid"
 	"github.com/syndtr/goleveldb/leveldb"
+	leveldbErrors "github.com/syndtr/goleveldb/leveldb/errors"
+	"labix.org/v2/mgo/bson"
 	"log"
 	"os"
 	"strconv"
@@ -13,11 +15,15 @@ import (
 )
 
 var (
-	ErrDecodeHeader error = errors.New("event: couldn't decode header")
-	ErrEncodeHeader error = errors.New("event: couldn't encode header")
-	ErrOpenStore    error = errors.New("event: couldn't open store")
-	ErrCloseStore   error = errors.New("event: couldn't close store")
-	ErrDestroyStore error = errors.New("event: couldn't destroy store")
+	ErrDecodeHeader       error = errors.New("event: couldn't decode the event header")
+	ErrEncodeHeader       error = errors.New("event: couldn't encode the event header")
+	ErrOpenStore          error = errors.New("event: couldn't open the store")
+	ErrCloseStore         error = errors.New("event: couldn't close the store")
+	ErrDestroyStore       error = errors.New("event: couldn't destroy the store")
+	ErrGetEventData       error = errors.New("event: couldn't get event data from the store")
+	ErrPutEventData       error = errors.New("event: couldn't put event data into the store")
+	ErrMarshalEventData   error = errors.New("event: couldn't marshal the event data")
+	ErrUnmarshalEventData error = errors.New("event: couldn't unmarshal the event data")
 )
 
 type Header struct {
@@ -36,7 +42,7 @@ func NewHeader(eventType string, version int) Header {
 	}
 }
 
-func EncodeHeader(header Header) []byte {
+func MustEncodeHeader(header Header) []byte {
 	createdAt, err := header.CreatedAt.MarshalBinary()
 	if err != nil {
 		log.Panic(ErrEncodeHeader)
@@ -51,7 +57,7 @@ func EncodeHeader(header Header) []byte {
 	return []byte(strings.Join(tokens, "::"))
 }
 
-func DecodeHeader(encoded []byte) Header {
+func MustDecodeHeader(encoded []byte) Header {
 	tokens := strings.Split(string(encoded), "::")
 
 	createdAt := time.Unix(0, 0)
@@ -110,9 +116,33 @@ func (self *leveldbStore) ForEach(since time.Time, callback func(header Header) 
 }
 
 func (self *leveldbStore) MustLoad(header Header, data interface{}) {
+	key := MustEncodeHeader(header)
+
+	value, err := self.db.Get(key, nil)
+	if err != nil {
+		if err == leveldbErrors.ErrNotFound {
+			return
+		} else {
+			log.Panic(ErrGetEventData)
+		}
+	}
+
+	if err = bson.Unmarshal(value, data); err != nil {
+		log.Panic(ErrUnmarshalEventData)
+	}
 }
 
 func (self *leveldbStore) MustSave(header Header, data interface{}) {
+	key := MustEncodeHeader(header)
+
+	value, err := bson.Marshal(data)
+	if err != nil {
+		log.Panic(ErrMarshalEventData)
+	}
+
+	if err = self.db.Put(key, value, nil); err != nil {
+		log.Panic(ErrPutEventData)
+	}
 }
 
 func (self *leveldbStore) MustClose() {
