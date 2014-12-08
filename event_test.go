@@ -1,6 +1,7 @@
 package event_test
 
 import (
+	"github.com/puffinframework/config"
 	"github.com/puffinframework/event"
 	"github.com/stretchr/testify/assert"
 	"os"
@@ -21,7 +22,7 @@ func TestHeader(t *testing.T) {
 }
 
 func TestEventStore(t *testing.T) {
-	os.Setenv("PF_MODE", "test")
+	os.Setenv(config.ENV_VAR_NAME, config.MODE_TEST)
 	store := event.NewLeveldbStore()
 	assert.NotNil(t, store)
 	defer store.MustDestroy()
