@@ -50,15 +50,15 @@ func TestEventStore(t *testing.T) {
 	store.MustSaveEventData(header3, data3)
 
 	data11 := &MyEventData{}
-	store.MustLoadEvendData(header1, data11)
+	store.MustLoadEventData(header1, data11)
 	assert.Equal(t, data11, data1)
 
 	data22 := &MyEventData{}
-	store.MustLoadEvendData(header2, data22)
+	store.MustLoadEventData(header2, data22)
 	assert.Equal(t, data22, data2)
 
 	data33 := &MyEventData{}
-	store.MustLoadEvendData(header3, data33)
+	store.MustLoadEventData(header3, data33)
 	assert.Equal(t, data33, data3)
 
 	ids := []string{}
@@ -66,7 +66,7 @@ func TestEventStore(t *testing.T) {
 	store.ForEachEventHeader(time0, func(header event.Header) bool {
 		ids = append(ids, header.ID)
 		d := &MyEventData{}
-		store.MustLoadEvendData(header, d)
+		store.MustLoadEventData(header, d)
 		data = append(data, d.Data)
 		return true
 	})
@@ -78,7 +78,7 @@ func TestEventStore(t *testing.T) {
 	store.ForEachEventHeader(time1, func(header event.Header) bool {
 		ids = append(ids, header.ID)
 		d := &MyEventData{}
-		store.MustLoadEvendData(header, d)
+		store.MustLoadEventData(header, d)
 		data = append(data, d.Data)
 		return true
 	})
@@ -90,7 +90,7 @@ func TestEventStore(t *testing.T) {
 	store.ForEachEventHeader(time0, func(header event.Header) bool {
 		ids = append(ids, header.ID)
 		d := &MyEventData{}
-		store.MustLoadEvendData(header, d)
+		store.MustLoadEventData(header, d)
 		data = append(data, d.Data)
 		return len(ids) < 2
 	})

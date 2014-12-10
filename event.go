@@ -86,7 +86,7 @@ func MustDecodeEventHeader(encoded []byte) Header {
 
 type Store interface {
 	ForEachEventHeader(since time.Time, callback func(header Header) bool)
-	MustLoadEvendData(header Header, data interface{})
+	MustLoadEventData(header Header, data interface{})
 	MustSaveEventData(header Header, data interface{})
 	MustClose()
 	MustDestroy()
@@ -138,7 +138,7 @@ func (self *leveldbStore) ForEachEventHeader(since time.Time, callback func(head
 	}
 }
 
-func (self *leveldbStore) MustLoadEvendData(header Header, data interface{}) {
+func (self *leveldbStore) MustLoadEventData(header Header, data interface{}) {
 	key := MustEncodeEventHeader(header)
 
 	value, err := self.db.Get(key, nil)
