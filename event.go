@@ -2,17 +2,18 @@ package event
 
 import (
 	"errors"
+	"log"
+	"os"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/puffinframework/config"
 	"github.com/satori/go.uuid"
 	"github.com/syndtr/goleveldb/leveldb"
 	leveldbErrors "github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"labix.org/v2/mgo/bson"
-	"log"
-	"os"
-	"strconv"
-	"strings"
-	"time"
 )
 
 var (
@@ -85,7 +86,7 @@ func MustDecodeEventHeader(encoded []byte) Header {
 }
 
 type Store interface {
-	ForEachEventHeader(since time.Time, callback func(header Header) bool)
+	ForEachEventHeader(since time.Time, callback func(header Header) (bool, error)) error
 	MustLoadEventData(header Header, data interface{})
 	MustSaveEventData(header Header, data interface{})
 	MustClose()
@@ -118,7 +119,7 @@ func NewLeveldbStore() Store {
 	return &leveldbStore{dir: dir, db: db}
 }
 
-func (self *leveldbStore) ForEachEventHeader(since time.Time, callback func(header Header) bool) {
+func (self *leveldbStore) ForEachEventHeader(since time.Time, callback func(header Header) (bool, error)) (callbackErr error) {
 	startHeader := Header{CreatedAt: since.Add(1 * time.Nanosecond), ID: "", Type: "", Version: 0}
 	startKey := MustEncodeEventHeader(startHeader)
 
@@ -126,7 +127,13 @@ func (self *leveldbStore) ForEachEventHeader(since time.Time, callback func(head
 	for iter.Next() {
 		key := iter.Key()
 		header := MustDecodeEventHeader(key)
-		if callback(header) == false {
+		cont, err := callback(header)
+		if err != nil {
+			log.Print(err)
+			callbackErr = err
+			break
+		}
+		if cont == false {
 			break
 		}
 	}
@@ -136,6 +143,8 @@ func (self *leveldbStore) ForEachEventHeader(since time.Time, callback func(head
 		log.Print(err)
 		log.Panic(ErrForEachEventHeader)
 	}
+
+	return callbackErr
 }
 
 func (self *leveldbStore) MustLoadEventData(header Header, data interface{}) {

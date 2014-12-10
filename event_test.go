@@ -1,12 +1,14 @@
 package event_test
 
 import (
-	"github.com/puffinframework/config"
-	"github.com/puffinframework/event"
-	"github.com/stretchr/testify/assert"
+	"errors"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/puffinframework/config"
+	"github.com/puffinframework/event"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestHeader(t *testing.T) {
@@ -63,37 +65,42 @@ func TestEventStore(t *testing.T) {
 
 	ids := []string{}
 	data := []string{}
-	store.ForEachEventHeader(time0, func(header event.Header) bool {
+	store.ForEachEventHeader(time0, func(header event.Header) (bool, error) {
 		ids = append(ids, header.ID)
 		d := &MyEventData{}
 		store.MustLoadEventData(header, d)
 		data = append(data, d.Data)
-		return true
+		return true, nil
 	})
 	assert.Equal(t, []string{"id1", "id2", "id3"}, ids)
 	assert.Equal(t, []string{"data 1", "data 2", "data 3"}, data)
 
 	ids = []string{}
 	data = []string{}
-	store.ForEachEventHeader(time1, func(header event.Header) bool {
+	store.ForEachEventHeader(time1, func(header event.Header) (bool, error) {
 		ids = append(ids, header.ID)
 		d := &MyEventData{}
 		store.MustLoadEventData(header, d)
 		data = append(data, d.Data)
-		return true
+		return true, nil
 	})
 	assert.Equal(t, []string{"id2", "id3"}, ids)
 	assert.Equal(t, []string{"data 2", "data 3"}, data)
 
 	ids = []string{}
 	data = []string{}
-	store.ForEachEventHeader(time0, func(header event.Header) bool {
+	store.ForEachEventHeader(time0, func(header event.Header) (bool, error) {
 		ids = append(ids, header.ID)
 		d := &MyEventData{}
 		store.MustLoadEventData(header, d)
 		data = append(data, d.Data)
-		return len(ids) < 2
+		return len(ids) < 2, nil
 	})
 	assert.Equal(t, []string{"id1", "id2"}, ids)
 	assert.Equal(t, []string{"data 1", "data 2"}, data)
+
+	err := store.ForEachEventHeader(time0, func(header event.Header) (bool, error) {
+		return true, errors.New("callback error")
+	})
+	assert.Equal(t, "callback error", err.Error())
 }
