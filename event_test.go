@@ -36,7 +36,7 @@ type MyEventData struct {
 
 func TestEventStore(t *testing.T) {
 	var cfg TestConfig
-	if _, err := toml.DecodeFile("test.toml", &cfg); err != nil {
+	if _, err := toml.DecodeFile("config_test.toml", &cfg); err != nil {
 		log.Panic(err)
 	}
 
