@@ -4,11 +4,10 @@ import (
 	"errors"
 	"testing"
 	"time"
-	"log"
 
 	"github.com/puffinframework/event"
+
 	"github.com/stretchr/testify/assert"
-	"github.com/BurntSushi/toml"
 )
 
 func TestHeader(t *testing.T) {
@@ -24,23 +23,12 @@ func TestHeader(t *testing.T) {
 	assert.Equal(t, header, decoded)
 }
 
-type TestConfig struct {
-	EventStoreLeveldb struct {
-		Dir string
-	}
-}
-
 type MyEventData struct {
 	Data string
 }
 
 func TestEventStore(t *testing.T) {
-	var cfg TestConfig
-	if _, err := toml.DecodeFile("config_test.toml", &cfg); err != nil {
-		log.Panic(err)
-	}
-
-	store := event.NewLeveldbStore(cfg.EventStoreLeveldb.Dir)
+	store := event.NewLeveldbStore("test-event-store")
 	assert.NotNil(t, store)
 	defer store.MustDestroy()
 
