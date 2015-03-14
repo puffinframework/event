@@ -6,18 +6,12 @@ import (
 	"time"
 
 	"github.com/syndtr/goleveldb/leveldb"
-	leveldbErrors "github.com/syndtr/goleveldb/leveldb/errors"
+	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"labix.org/v2/mgo/bson"
 )
 
-type leveldbStoreConfig struct {
-	EventStore struct {
-		LeveldbDir string
-	}
-}
-
-type leveldbStore struct {
+type storeLeveldb struct {
 	dir string
 	db  *leveldb.DB
 }
@@ -29,10 +23,10 @@ func NewLeveldbStore(dir string) Store {
 		log.Panic(ErrOpenStore)
 	}
 
-	return &leveldbStore{dir: dir, db: db}
+	return &storeLeveldb{dir: dir, db: db}
 }
 
-func (self *leveldbStore) ForEachEventHeader(since time.Time, callback func(header Header) (bool, error)) (callbackErr error) {
+func (self *storeLeveldb) ForEachEventHeader(since time.Time, callback func(header Header) (bool, error)) (callbackErr error) {
 	startHeader := Header{CreatedAt: since.Add(1 * time.Nanosecond), ID: "", Type: "", Version: 0}
 	startKey := MustEncodeEventHeader(startHeader)
 
@@ -60,12 +54,12 @@ func (self *leveldbStore) ForEachEventHeader(since time.Time, callback func(head
 	return callbackErr
 }
 
-func (self *leveldbStore) MustLoadEventData(header Header, data interface{}) {
+func (self *storeLeveldb) MustLoadEventData(header Header, data interface{}) {
 	key := MustEncodeEventHeader(header)
 
 	value, err := self.db.Get(key, nil)
 	if err != nil {
-		if err == leveldbErrors.ErrNotFound {
+		if err == errors.ErrNotFound {
 			return
 		} else {
 			log.Print(err)
@@ -79,7 +73,7 @@ func (self *leveldbStore) MustLoadEventData(header Header, data interface{}) {
 	}
 }
 
-func (self *leveldbStore) MustSaveEventData(header Header, data interface{}) {
+func (self *storeLeveldb) MustSaveEventData(header Header, data interface{}) {
 	key := MustEncodeEventHeader(header)
 
 	value, err := bson.Marshal(data)
@@ -94,14 +88,14 @@ func (self *leveldbStore) MustSaveEventData(header Header, data interface{}) {
 	}
 }
 
-func (self *leveldbStore) MustClose() {
+func (self *storeLeveldb) MustClose() {
 	if err := self.db.Close(); err != nil {
 		log.Print(err)
 		log.Panic(ErrCloseStore)
 	}
 }
 
-func (self *leveldbStore) MustDestroy() {
+func (self *storeLeveldb) MustDestroy() {
 	self.MustClose()
 	if err := os.RemoveAll(self.dir); err != nil {
 		log.Print(err)
