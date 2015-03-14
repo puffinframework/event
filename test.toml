@@ -1,2 +1,2 @@
-[EventStore]
-LeveldbDir = "test-event-store"
+[EventStoreLeveldb]
+Dir = "test-event-store"

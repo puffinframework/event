@@ -2,13 +2,13 @@ package event_test
 
 import (
 	"errors"
-	"os"
 	"testing"
 	"time"
+	"log"
 
-	"github.com/puffinframework/config"
 	"github.com/puffinframework/event"
 	"github.com/stretchr/testify/assert"
+	"github.com/BurntSushi/toml"
 )
 
 func TestHeader(t *testing.T) {
@@ -24,13 +24,23 @@ func TestHeader(t *testing.T) {
 	assert.Equal(t, header, decoded)
 }
 
+type TestConfig struct {
+	EventStoreLeveldb struct {
+		Dir string
+	}
+}
+
 type MyEventData struct {
 	Data string
 }
 
 func TestEventStore(t *testing.T) {
-	os.Setenv(config.ENV_VAR_NAME, config.MODE_TEST)
-	store := event.NewLeveldbStore()
+	var cfg TestConfig
+	if _, err := toml.DecodeFile("test.toml", &cfg); err != nil {
+		log.Panic(err)
+	}
+
+	store := event.NewLeveldbStore(cfg.EventStoreLeveldb.Dir)
 	assert.NotNil(t, store)
 	defer store.MustDestroy()
 
