@@ -16,4 +16,3 @@ var (
 	ErrUnmarshalEventData error = errors.New("event: couldn't unmarshal the event data")
 	ErrForEachEventHeader error = errors.New("event: there was a problem during the iteration of event headers")
 )
-

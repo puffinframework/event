@@ -64,4 +64,3 @@ func MustDecodeEventHeader(encoded []byte) Header {
 		Version:   version,
 	}
 }
-

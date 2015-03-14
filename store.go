@@ -11,4 +11,3 @@ type Store interface {
 	MustClose()
 	MustDestroy()
 }
-
