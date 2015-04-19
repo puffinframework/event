@@ -29,8 +29,12 @@ type MyEventData struct {
 
 func TestEventStore(t *testing.T) {
 	store := event.NewLeveldbStore("test-event-store")
-	assert.NotNil(t, store)
+	testEventStore(t, store)
+}
+
+func testEventStore(t *testing.T, store event.Store) {
 	defer store.MustDestroy()
+	assert.NotNil(t, store)
 
 	time0 := time.Unix(0, 0)
 	time1 := time.Unix(0, 1)
@@ -101,4 +105,5 @@ func TestEventStore(t *testing.T) {
 		return true, errors.New("callback error")
 	})
 	assert.Equal(t, "callback error", err.Error())
+
 }
