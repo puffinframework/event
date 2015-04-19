@@ -54,7 +54,7 @@ func (self *storeLeveldb) ForEachEventHeader(since time.Time, callback func(head
 	return callbackErr
 }
 
-func (self *storeLeveldb) MustLoadEventData(header Header, data interface{}) {
+func (self *storeLeveldb) MustLoadEvent(header Header, data interface{}) {
 	key := MustEncodeEventHeader(header)
 
 	value, err := self.db.Get(key, nil)
@@ -73,7 +73,7 @@ func (self *storeLeveldb) MustLoadEventData(header Header, data interface{}) {
 	}
 }
 
-func (self *storeLeveldb) MustSaveEventData(header Header, data interface{}) {
+func (self *storeLeveldb) MustSaveEvent(header Header, data interface{}) {
 	key := MustEncodeEventHeader(header)
 
 	value, err := bson.Marshal(data)
