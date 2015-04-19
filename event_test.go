@@ -27,11 +27,6 @@ type MyEventData struct {
 	Data string
 }
 
-func TestEventStore(t *testing.T) {
-	store := event.NewLeveldbStore("test-event-store")
-	testEventStore(t, store)
-}
-
 func testEventStore(t *testing.T, store event.Store) {
 	defer store.MustDestroy()
 	assert.NotNil(t, store)

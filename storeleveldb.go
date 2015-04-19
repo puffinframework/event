@@ -36,7 +36,6 @@ func (self *storeLeveldb) ForEachEventHeader(since time.Time, callback func(head
 		header := MustDecodeEventHeader(key)
 		cont, err := callback(header)
 		if err != nil {
-			log.Print(err)
 			callbackErr = err
 			break
 		}
